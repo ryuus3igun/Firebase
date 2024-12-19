@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP Firebase App</title>
+
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+        https://firebase.google.com/docs/web/setup#available-libraries -->
+    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-database.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"
+      integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script>
+    // REPLACE WITH YOUR web app's Firebase configuration
+        var firebaseConfig = {
+        apiKey: "AIzaSyAB_9i7LOCSVj4qs89YJFTyoPsS7UwR_5c",
+        authDomain: "esp32-led-sample.firebaseapp.com",
+        databaseURL: "https://esp32-led-sample-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "esp32-led-sample",
+        storageBucket: "esp32-led-sample.firebasestorage.app",
+        messagingSenderId: "991945476726",
+        appId: "1:991945476726:web:b60bcec13721a62cadad57"
+        };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    var database = firebase.database();
+    </script>
+    <script src="app.js" defer></script>
+
+</head>
+<body>
+    <h1>HIHIHIHI</h1>
+    <p>Flame %: <span id="reading-int"></span></p>
+    <p>The-other-sensor %: <span id="reading-float"></span></p>
+    <div class="chart-container">
+        <canvas id="myChart" width="1000" height="600"></canvas>
+    </div>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+    
+        h1 {
+            color: #333;
+        }
+    
+        .chart-container {
+            margin: 0 auto;
+            width: 90%;
+            max-width: 1200px;
+        }
+    </style>
+</body>
+</html>
