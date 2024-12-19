@@ -1,62 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ESP Firebase App</title>
-
-    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-
-    <!-- TODO: Add SDKs for Firebase products that you want to use
-        https://firebase.google.com/docs/web/setup#available-libraries -->
-    <script src="https://www.gstatic.com/firebasejs/8.8.1/firebase-database.js"></script>
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"
-      integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    ></script>
-    <script>
-    // REPLACE WITH YOUR web app's Firebase configuration
-        var firebaseConfig = {
-        apiKey: "AIzaSyAB_9i7LOCSVj4qs89YJFTyoPsS7UwR_5c",
-        authDomain: "esp32-led-sample.firebaseapp.com",
-        databaseURL: "https://esp32-led-sample-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "esp32-led-sample",
-        storageBucket: "esp32-led-sample.firebasestorage.app",
-        messagingSenderId: "991945476726",
-        appId: "1:991945476726:web:b60bcec13721a62cadad57"
-        };
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    var database = firebase.database();
-    </script>
-    <script src="app.js" defer></script>
-
-</head>
-<body>
-    <h1>HIHIHIHI</h1>
-    <p>Flame %: <span id="reading-int"></span></p>
-    <p>The-other-sensor %: <span id="reading-float"></span></p>
-    <div class="chart-container">
-        <canvas id="myChart" width="1000" height="600"></canvas>
-    </div>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
         }
-    
-        h1 {
-            color: #333;
-        }
-    
+
         .chart-container {
             margin: 0 auto;
             width: 90%;
             max-width: 1200px;
         }
     </style>
+</head>
+
+<body>
+    <h1>Kiểm tra Chart Firebase</h1>
+    <p>Flame %: <span id="reading-int"></span></p>
+    <p>Other Sensor %: <span id="reading-float"></span></p>
+    <div class="chart-container">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <script>
+        // Cấu hình Firebase (thay YOUR_* bằng thông tin dự án của bạn)
+        var firebaseConfig = {
+            apiKey: "AIzaSyAB_9i7LOCSVj4qs89YJFTyoPsS7UwR_5c",
+            authDomain: "esp32-led-sample.firebaseapp.com",
+            databaseURL: "https://esp32-led-sample-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "esp32-led-sample",
+            storageBucket: "esp32-led-sample.firebasestorage.app",
+            messagingSenderId: "991945476726",
+            appId: "1:991945476726:web:b60bcec13721a62cadad57"
+        };
+        firebase.initializeApp(firebaseConfig);
+        var database = firebase.database();
+
+        // Tham chiếu đến Firebase paths
+        const databaseInt = database.ref('test/int');    // Flame sensor
+        const databaseFloat = database.ref('test/float'); // Other sensor
+
+        // Khởi tạo chart
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Flame (%)',
+                        data: [],
+                        borderColor: 'red',
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        fill: false,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Other Sensor (%)',
+                        data: [],
+                        borderColor: 'blue',
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        fill: false,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Time (hh:mm:ss)'
+                        }
+                    },
+                    y: {
+                        display: true,
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Sensor Value (%)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+
+        // Hàm cập nhật chart
+        function updateChart(value, datasetIndex) {
+            const currentTime = new Date().toLocaleTimeString();
+
+            // Nếu là dataset đầu tiên (Flame), thêm label thời gian
+            if (datasetIndex === 0) {
+                // Giới hạn hiển thị 20 điểm
+                if (chart.data.labels.length > 20) {
+                    chart.data.labels.shift();
+                    chart.data.datasets.forEach(dataset => {
+                        dataset.data.shift();
+                    });
+                }
+
+                // Thêm nhãn thời gian
+                chart.data.labels.push(currentTime);
+            }
+
+            // Thêm dữ liệu mới vào dataset tương ứng
+            chart.data.datasets[datasetIndex].data.push(value);
+
+            chart.update(); // Dùng chart.update() để dễ quan sát
+        }
+
+        // Lắng nghe thay đổi từ Firebase cho Flame sensor
+        databaseInt.on('value', (snapshot) => {
+            const intReading = snapshot.val();
+            console.log('Int Reading:', intReading);
+            document.getElementById("reading-int").innerHTML = intReading;
+
+            const valueNumber = Number(intReading);
+            updateChart(valueNumber, 0);
+        }, (errorObject) => {
+            console.log('The read failed: ' + errorObject.name);
+        });
+
+        // Lắng nghe thay đổi từ Firebase cho Other Sensor
+        databaseFloat.on('value', (snapshot) => {
+            const floatReading = snapshot.val();
+            console.log('Other Sensor Reading:', floatReading);
+            document.getElementById("reading-float").innerHTML = floatReading;
+
+            const valueNumber = Number(floatReading);
+            updateChart(valueNumber, 1);
+        }, (errorObject) => {
+            console.log('The read failed: ' + errorObject.name);
+        });
+    </script>
 </body>
+
 </html>
