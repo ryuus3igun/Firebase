@@ -25,15 +25,14 @@
 </head>
 
 <body>
-    <h1>Kiểm tra Chart Firebase</h1>
-    <p>Flame %: <span id="reading-int"></span></p>
-    <p>Other Sensor %: <span id="reading-float"></span></p>
+    <h1>Demo đồ án IOT - Thiết bị báo cháy Phát hiện khói lửa</h1>
+    <p>Fire %: <span id="reading-int"></span></p>
+    <p>Smoke %: <span id="reading-float"></span></p>
     <div class="chart-container">
         <canvas id="myChart"></canvas>
     </div>
 
     <script>
-        // Cấu hình Firebase (thay YOUR_* bằng thông tin dự án của bạn)
         var firebaseConfig = {
             apiKey: "AIzaSyAB_9i7LOCSVj4qs89YJFTyoPsS7UwR_5c",
             authDomain: "esp32-led-sample.firebaseapp.com",
@@ -46,11 +45,57 @@
         firebase.initializeApp(firebaseConfig);
         var database = firebase.database();
 
-        // Tham chiếu đến Firebase paths
-        const databaseInt = database.ref('test/int');    // Flame sensor
-        const databaseFloat = database.ref('test/float'); // Other sensor
+        const databaseInt = database.ref('test/int');
+        const databaseFloat = database.ref('test/float');
 
-        // Khởi tạo chart
+        // Plugin vẽ đường ngang
+        const horizontalLinePlugin = {
+            id: 'horizontalLine',
+            afterDraw(chart) {
+                const lineYValueFire = 70;  // Ngưỡng Fire
+                const lineYValueSmoke = 30; // Ngưỡng Smoke
+
+                const { ctx, chartArea, scales: { y } } = chart;
+
+                // Vẽ đường Fire
+                {
+                    const yPixel = y.getPixelForValue(lineYValueFire);
+                    ctx.save();
+                    ctx.strokeStyle = 'red';
+                    ctx.setLineDash([5, 5]);
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(chartArea.left, yPixel);
+                    ctx.lineTo(chartArea.right, yPixel);
+                    ctx.stroke();
+                    ctx.fillStyle = 'red';
+                    ctx.textAlign = 'end';
+                    ctx.textBaseline = 'bottom';
+                    ctx.fillText('Threshold Fire = 70%', chartArea.right, yPixel - 5);
+                    ctx.restore();
+                }
+
+                // Vẽ đường Smoke
+                {
+                    const yPixel = y.getPixelForValue(lineYValueSmoke);
+                    ctx.save();
+                    ctx.strokeStyle = 'blue';
+                    ctx.setLineDash([5, 5]);
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(chartArea.left, yPixel);
+                    ctx.lineTo(chartArea.right, yPixel);
+                    ctx.stroke();
+                    ctx.fillStyle = 'blue';
+                    ctx.textAlign = 'end';
+                    ctx.textBaseline = 'bottom';
+                    ctx.fillText('Threshold Smoke = 30%', chartArea.right, yPixel - 5);
+                    ctx.restore();
+                }
+            }
+        };
+
+
         const ctx = document.getElementById('myChart').getContext('2d');
         const chart = new Chart(ctx, {
             type: 'line',
@@ -58,7 +103,7 @@
                 labels: [],
                 datasets: [
                     {
-                        label: 'Flame (%)',
+                        label: 'Fire (%)',
                         data: [],
                         borderColor: 'red',
                         borderWidth: 2,
@@ -67,7 +112,7 @@
                         tension: 0.4
                     },
                     {
-                        label: 'Other Sensor (%)',
+                        label: 'Smoke (%)',
                         data: [],
                         borderColor: 'blue',
                         borderWidth: 2,
@@ -102,16 +147,16 @@
                         position: 'top'
                     }
                 }
-            }
+            },
+            plugins: [horizontalLinePlugin]
         });
+
 
         // Hàm cập nhật chart
         function updateChart(value, datasetIndex) {
             const currentTime = new Date().toLocaleTimeString();
 
-            // Nếu là dataset đầu tiên (Flame), thêm label thời gian
             if (datasetIndex === 0) {
-                // Giới hạn hiển thị 20 điểm
                 if (chart.data.labels.length > 20) {
                     chart.data.labels.shift();
                     chart.data.datasets.forEach(dataset => {
@@ -119,17 +164,15 @@
                     });
                 }
 
-                // Thêm nhãn thời gian
                 chart.data.labels.push(currentTime);
             }
 
-            // Thêm dữ liệu mới vào dataset tương ứng
             chart.data.datasets[datasetIndex].data.push(value);
 
-            chart.update(); // Dùng chart.update() để dễ quan sát
+            chart.update();
         }
 
-        // Lắng nghe thay đổi từ Firebase cho Flame sensor
+        // Lắng nghe thay đổi từ Firebase cho Fire sensor
         databaseInt.on('value', (snapshot) => {
             const intReading = snapshot.val();
             console.log('Int Reading:', intReading);
@@ -141,7 +184,7 @@
             console.log('The read failed: ' + errorObject.name);
         });
 
-        // Lắng nghe thay đổi từ Firebase cho Other Sensor
+        // Lắng nghe thay đổi từ Firebase cho Smoke Sensor
         databaseFloat.on('value', (snapshot) => {
             const floatReading = snapshot.val();
             console.log('Other Sensor Reading:', floatReading);
