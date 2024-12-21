@@ -48,7 +48,6 @@
         const databaseInt = database.ref('test/int');
         const databaseFloat = database.ref('test/float');
 
-        // Plugin vẽ đường ngang
         const horizontalLinePlugin = {
             id: 'horizontalLine',
             afterDraw(chart) {
@@ -75,23 +74,23 @@
                     ctx.restore();
                 }
 
-                // Vẽ đường Smoke
-                {
-                    const yPixel = y.getPixelForValue(lineYValueSmoke);
-                    ctx.save();
-                    ctx.strokeStyle = 'blue';
-                    ctx.setLineDash([5, 5]);
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(chartArea.left, yPixel);
-                    ctx.lineTo(chartArea.right, yPixel);
-                    ctx.stroke();
-                    ctx.fillStyle = 'blue';
-                    ctx.textAlign = 'end';
-                    ctx.textBaseline = 'bottom';
-                    ctx.fillText('Threshold Smoke = 50%', chartArea.right, yPixel - 5);
-                    ctx.restore();
-                }
+                // // Vẽ đường Smoke
+                // {
+                //     const yPixel = y.getPixelForValue(lineYValueSmoke);
+                //     ctx.save();
+                //     ctx.strokeStyle = 'blue';
+                //     ctx.setLineDash([5, 5]);
+                //     ctx.lineWidth = 2;
+                //     ctx.beginPath();
+                //     ctx.moveTo(chartArea.left, yPixel);
+                //     ctx.lineTo(chartArea.right, yPixel);
+                //     ctx.stroke();
+                //     ctx.fillStyle = 'blue';
+                //     ctx.textAlign = 'end';
+                //     ctx.textBaseline = 'bottom';
+                //     ctx.fillText('Threshold Smoke = 50%', chartArea.right, yPixel - 5);
+                //     ctx.restore();
+                // }
             }
         };
 
@@ -150,30 +149,25 @@
             plugins: [horizontalLinePlugin]
         });
 
-        // Biến toàn cục lưu giá trị Fire và Smoke mới nhất
         let latestFire = null;
         let latestSmoke = null;
 
-        // Cập nhật biến Fire khi dữ liệu thay đổi
         databaseInt.on('value', (snapshot) => {
             const intReading = snapshot.val();
             document.getElementById("reading-int").innerHTML = intReading;
             latestFire = Number(intReading);
         });
 
-        // Cập nhật biến Smoke khi dữ liệu thay đổi
         databaseFloat.on('value', (snapshot) => {
             const floatReading = snapshot.val();
             document.getElementById("reading-float").innerHTML = floatReading;
             latestSmoke = Number(floatReading);
         });
 
-        // Hàm update chart định kỳ
         function updateChartPeriodically() {
             if (latestFire !== null && latestSmoke !== null) {
                 const currentTime = new Date().toLocaleTimeString();
 
-                // Giới hạn số điểm
                 if (chart.data.labels.length > 20) {
                     chart.data.labels.shift();
                     chart.data.datasets.forEach(dataset => {
