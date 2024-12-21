@@ -53,7 +53,7 @@
             id: 'horizontalLine',
             afterDraw(chart) {
                 const lineYValueFire = 70;  // Ngưỡng Fire
-                const lineYValueSmoke = 30; // Ngưỡng Smoke
+                const lineYValueSmoke = 50; // Ngưỡng Smoke
 
                 const { ctx, chartArea, scales: { y } } = chart;
 
@@ -89,7 +89,7 @@
                     ctx.fillStyle = 'blue';
                     ctx.textAlign = 'end';
                     ctx.textBaseline = 'bottom';
-                    ctx.fillText('Threshold Smoke = 30%', chartArea.right, yPixel - 5);
+                    ctx.fillText('Threshold Smoke = 50%', chartArea.right, yPixel - 5);
                     ctx.restore();
                 }
             }
@@ -156,14 +156,16 @@
         function updateChart(value, datasetIndex) {
             const currentTime = new Date().toLocaleTimeString();
 
-            if (datasetIndex === 0) {
+            if (datasetIndex === 0 || datasetIndex ===1) {
                 if (chart.data.labels.length > 20) {
                     chart.data.labels.shift();
                     chart.data.datasets.forEach(dataset => {
                         dataset.data.shift();
                     });
+                // chart.data.labels.push(currentTime);
                 }
-
+                console.log(value);
+                console.log(datasetIndex);
                 chart.data.labels.push(currentTime);
             }
 
@@ -187,7 +189,7 @@
         // Lắng nghe thay đổi từ Firebase cho Smoke Sensor
         databaseFloat.on('value', (snapshot) => {
             const floatReading = snapshot.val();
-            console.log('Other Sensor Reading:', floatReading);
+            console.log('smoke Reading:', floatReading);
             document.getElementById("reading-float").innerHTML = floatReading;
 
             const valueNumber = Number(floatReading);
@@ -198,4 +200,4 @@
     </script>
 </body>
 
-</html>
+</html> 
