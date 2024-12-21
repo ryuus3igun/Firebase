@@ -95,6 +95,7 @@
             }
         };
 
+
         const ctx = document.getElementById('myChart').getContext('2d');
         const chart = new Chart(ctx, {
             type: 'line',
@@ -150,27 +151,11 @@
             plugins: [horizontalLinePlugin]
         });
 
-        // Biến toàn cục lưu giá trị Fire và Smoke mới nhất
-        let latestFire = null;
-        let latestSmoke = null;
+        let currentFire = null;
+        let currentSmoke = null;
 
-        // Cập nhật biến Fire khi dữ liệu thay đổi
-        databaseInt.on('value', (snapshot) => {
-            const intReading = snapshot.val();
-            document.getElementById("reading-int").innerHTML = intReading;
-            latestFire = Number(intReading);
-        });
-
-        // Cập nhật biến Smoke khi dữ liệu thay đổi
-        databaseFloat.on('value', (snapshot) => {
-            const floatReading = snapshot.val();
-            document.getElementById("reading-float").innerHTML = floatReading;
-            latestSmoke = Number(floatReading);
-        });
-
-        // Hàm update chart định kỳ
-        function updateChartPeriodically() {
-            if (latestFire !== null && latestSmoke !== null) {
+        function updateChartWhenBothReady() {
+            if (currentFire !== null && currentSmoke !== null) {
                 const currentTime = new Date().toLocaleTimeString();
 
                 // Giới hạn số điểm
@@ -181,16 +166,84 @@
                     });
                 }
 
+                // Thêm label (thời gian)
                 chart.data.labels.push(currentTime);
-                chart.data.datasets[0].data.push(latestFire);
-                chart.data.datasets[1].data.push(latestSmoke);
+                // Thêm dữ liệu Fire
+                chart.data.datasets[0].data.push(currentFire);
+                // Thêm dữ liệu Smoke
+                chart.data.datasets[1].data.push(currentSmoke);
 
+                // Reset biến tạm
+                currentFire = null;
+                currentSmoke = null;
+
+                // Cập nhật chart
                 chart.update();
             }
         }
 
-        // Thiết lập interval để cập nhật chart mỗi 5 giây (tuỳ chỉnh theo ý muốn)
-        setInterval(updateChartPeriodically, 500);
+        // Lắng nghe thay đổi từ Firebase cho Fire sensor
+        databaseInt.on('value', (snapshot) => {
+            const intReading = snapshot.val();
+            console.log('Int Reading:', intReading);
+            document.getElementById("reading-int").innerHTML = intReading;
+            currentFire = Number(intReading);
+            updateChartWhenBothReady(); // Kiểm tra nếu Smoke cũng sẵn sàng thì vẽ
+        });
+
+        // Lắng nghe thay đổi từ Firebase cho Smoke Sensor
+        databaseFloat.on('value', (snapshot) => {
+            const floatReading = snapshot.val();
+            console.log('smoke Reading:', floatReading);
+            document.getElementById("reading-float").innerHTML = floatReading;
+            currentSmoke = Number(floatReading);
+            updateChartWhenBothReady(); // Kiểm tra nếu Fire cũng sẵn sàng thì vẽ
+        });
+        // // Hàm cập nhật chart
+        // function updateChart(value, datasetIndex) {
+        //     const currentTime = new Date().toLocaleTimeString();
+
+        //     if (datasetIndex === 0 || datasetIndex ===1) {
+        //         if (chart.data.labels.length > 20) {
+        //             chart.data.labels.shift();
+        //             chart.data.datasets.forEach(dataset => {
+        //                 dataset.data.shift();
+        //             });
+        //         // chart.data.labels.push(currentTime);
+        //         }
+        //         console.log(value);
+        //         console.log(datasetIndex);
+        //         chart.data.labels.push(currentTime);
+        //     }
+
+        //     chart.data.datasets[datasetIndex].data.push(value);
+
+        //     chart.update();
+        // }
+
+        // // Lắng nghe thay đổi từ Firebase cho Fire sensor
+        // databaseInt.on('value', (snapshot) => {
+        //     const intReading = snapshot.val();
+        //     console.log('Int Reading:', intReading);
+        //     document.getElementById("reading-int").innerHTML = intReading;
+
+        //     const valueNumber = Number(intReading);
+        //     updateChart(valueNumber, 0);
+        // }, (errorObject) => {
+        //     console.log('The read failed: ' + errorObject.name);
+        // });
+
+        // // Lắng nghe thay đổi từ Firebase cho Smoke Sensor
+        // databaseFloat.on('value', (snapshot) => {
+        //     const floatReading = snapshot.val();
+        //     console.log('smoke Reading:', floatReading);
+        //     document.getElementById("reading-float").innerHTML = floatReading;
+
+        //     const valueNumber = Number(floatReading);
+        //     updateChart(valueNumber, 1);
+        // }, (errorObject) => {
+        //     console.log('The read failed: ' + errorObject.name);
+        // });
     </script>
 </body>
 

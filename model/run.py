@@ -45,23 +45,31 @@ while True:
             print("Class name -->", cls)
             if cls == 1 or cls == 2:
                 arduino.write((str(cls)+ '\n').encode())
+                # object details
+                org = [x1, y1]
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                fontScale = 1
+                color = (255, 0, 0)
+                thickness = 2
+
+                cv2.putText(img, classNames[cls], org, font, fontScale, color, thickness)
                 break
             else: 
                 arduino.write((str(0)+ '\n').encode())
+                # object details
+                org = [x1, y1]
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                fontScale = 1
+                color = (255, 0, 0)
+                thickness = 2
+
+                cv2.putText(img, classNames[cls], org, font, fontScale, color, thickness)
                 break
             # if cls == 1:
             #     num = 1
             #     break
             # time.sleep(0.1)
 
-            # object details
-            org = [x1, y1]
-            font = cv2.FONT_HERSHEY_SIMPLEX
-            fontScale = 1
-            color = (255, 0, 0)
-            thickness = 2
-
-            cv2.putText(img, classNames[cls], org, font, fontScale, color, thickness)
 
     cv2.imshow('Webcam', img)
     cv2.waitKey(220)
